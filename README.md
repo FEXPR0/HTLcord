@@ -79,6 +79,12 @@ http://localhost:8000
 
 ---
 
+## Use Case Diagramm
+
+![HTLcord Use Case Diagramm](HTLcordUsecase.png)
+
+---
+
 ## User Stories
 
 - Als Benutzer kann ich mich registrieren und einloggen.

@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# Datenbank (nicht ins Repo!)
+*.db
+
+# IDE
+.vscode/
+.idea/

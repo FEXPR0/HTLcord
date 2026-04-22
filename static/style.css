@@ -1,0 +1,130 @@
+/* style.css – Basis-Styling für HTLcord */
+/* TODO: später ausbauen */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Login Screen ── */
+#login-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 300px;
+}
+
+#login-screen h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #2a2a3e;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+button {
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background: #5865f2;  /* Discord-ähnliches Blau */
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #4752c4;
+}
+
+/* ── Chat Screen ── */
+#chat-screen {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+#sidebar {
+    width: 200px;
+    background: #2a2a3e;
+    padding: 20px 10px;
+}
+
+#sidebar h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.channel {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.channel:hover {
+    background: #3a3a5e;
+    color: white;
+}
+
+#chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.message .author {
+    font-weight: bold;
+    color: #5865f2;
+    font-size: 13px;
+}
+
+.message .time {
+    font-size: 11px;
+    color: #666;
+    margin-left: 6px;
+}
+
+.message .text {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+#input-area {
+    display: flex;
+    padding: 15px;
+    gap: 10px;
+    background: #2a2a3e;
+}
+
+#input-area input {
+    flex: 1;
+}

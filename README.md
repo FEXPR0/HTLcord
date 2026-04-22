@@ -23,7 +23,7 @@ Echtzeit-Kommunikation über WebSockets, Benutzerkonten mit JWT-Authentifizierun
 |---|---|
 | Backend | Python 3.11+, FastAPI, Uvicorn |
 | WebSockets | FastAPI WebSocket Support |
-| Datenbank | SQLite (lokal) oder SQLAlchemy oder PostgreSQL (Produktion) |
+| Datenbank | SQLite (lokal) / PostgreSQL (Produktion) |
 | ORM | SQLAlchemy |
 | Auth | JWT (python-jose), Passwort-Hashing (passlib/bcrypt) |
 | Frontend | HTML, CSS, Vanilla JavaScript |

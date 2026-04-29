@@ -1,48 +1,26 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
     <title>HTLcord</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>HTLcord Test</h1>
 
-    <!-- Login-Bereich (wird ausgeblendet sobald eingeloggt) -->
-    <div id="login-screen">
-        <h1>💬 HTLcord</h1>
-
-        <input type="text"     id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Passwort">
-
-        <button onclick="login()">Login</button>
-        <button onclick="register()">Registrieren</button>
-
-        <p id="login-error" style="color:red"></p>
+    <div>
+        <button id="connectbtn">Connect</button>
+        <button id="disconnectbtn" disabled>Disconnect</button>
+        <button id="sendbtn" disabled>Send</button>
     </div>
 
-    <!-- Chat-Bereich (erst sichtbar nach Login) -->
-    <div id="chat-screen" style="display:none">
-
-        <div id="sidebar">
-            <h2>Channels</h2>
-            <!-- TODO: Channels dynamisch laden -->
-            <div class="channel" onclick="joinChannel('allgemein')"># allgemein</div>
-            <div class="channel" onclick="joinChannel('random')"># random</div>
-        </div>
-
-        <div id="chat-area">
-            <div id="messages">
-                <!-- Nachrichten werden hier per JS eingefügt -->
-            </div>
-
-            <div id="input-area">
-                <input type="text" id="message-input" placeholder="Nachricht schreiben...">
-                <button onclick="sendMessage()">Senden</button>
-            </div>
-        </div>
-
+    <div id="messages">
+        <input type="text" id="messageinput" placeholder="Type a message..." disabled>
     </div>
 
-    <script src="/static/app.js"></script>
+    <div id="incomingmessages">
+        <textarea id="incoming" readonly></textarea>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>

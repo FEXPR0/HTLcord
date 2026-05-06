@@ -12,3 +12,6 @@ venv/
 # IDE
 .vscode/
 .idea/
+
+# Chat Logs
+messages.txt

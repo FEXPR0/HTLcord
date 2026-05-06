@@ -9,8 +9,15 @@ button {
     cursor: pointer; 
 }
 
-input, textarea { 
+input { 
+    padding: 8px;  /* This actually works! */
+    margin: 5px; 
+    width: 300px;
+}
+
+textarea { 
     padding: 8px; 
     margin: 5px; 
-    width: 300px; 
+    width: 800px;
+    height: 300px;
 }

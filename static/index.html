@@ -15,6 +15,7 @@
         <button id="connectbtn">Connect</button>
         <button id="disconnectbtn" disabled>Disconnect</button>
         <button id="sendbtn" disabled>Send</button>
+        <button id="updatebtn" disabled>Update</button>
     </div>
 
     <div id="messages">
@@ -24,6 +25,18 @@
     <div id="incomingmessages">
         <textarea id="incoming" readonly></textarea>
     </div>
+
+    <div>
+        <button id="broadcastbtn">Broadcast</button>
+    </div>
+
+  <div class="user-sidebar">
+            <h3>Users</h3>
+            <div id="userlist" class="user-list">
+                <!-- Users will be dynamically added here -->
+            </div>
+            
+
 
     <script src="app.js"></script>
 </body>

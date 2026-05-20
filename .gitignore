@@ -13,5 +13,6 @@ venv/
 .vscode/
 .idea/
 
-# Chat Logs
+# Logs
 messages.txt
+DATASHEET.md

@@ -1,44 +1,22 @@
-# models.py
-# Datenbankmodelle = Python-Klassen die Tabellen darstellen.
-# Jede Klasse = eine Tabelle, jede Variable = eine Spalte.
-
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Integer, String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from database import Base
 
 
 class User(Base):
-    """
-    Tabelle: users
-    Speichert alle registrierten Benutzer.
-    """
     __tablename__ = "users"
 
-    id       = Column(Integer, primary_key=True)  # automatische ID
-    username = Column(String, unique=True)         # darf nicht doppelt vorkommen
-    password = Column(String)                      # bcrypt-Hash (nie Klartext!)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
 class Message(Base):
-    """
-    Tabelle: messages
-    Speichert alle gesendeten Nachrichten.
-    """
     __tablename__ = "messages"
 
-    id        = Column(Integer, primary_key=True)
-    channel   = Column(String)                          # z.B. "allgemein"
-    username  = Column(String)                          # wer hat geschrieben
-    content   = Column(String)                          # der Nachrichtentext
-    timestamp = Column(DateTime, default=datetime.utcnow)  # wann
-
-
-class Channel(Base):
-    """
-    Tabelle: channels
-    Speichert die verfügbaren Channels.
-    """
-    __tablename__ = "channels"
-
-    id   = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)   # z.B. "allgemein", "random"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(100), nullable=False)
+    message: Mapped[str] = mapped_column(String(2000), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    type: Mapped[str] = mapped_column(String(20), default="message")  # "message" or "dm"

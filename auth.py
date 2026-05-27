@@ -14,8 +14,9 @@ SECRET_KEY = "htlcord-geheimschluessel"  # TODO: in Produktion sicher ersetzen!
 ALGORITHM  = "HS256"
 TOKEN_EXPIRE_MINUTES = 60 * 24  # Token gilt 24 Stunden
 
-# CryptContext kümmert sich um bcrypt-Hashing
-pwd_context = CryptContext(schemes=["bcrypt"])
+# CryptContext kümmert sich um sichere Passwort-Hashes.
+# bcrypt_sha256 prevents bcrypt's 72-byte password limit by hashing the password with SHA-256 first.
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 def hash_password(plain_password: str) -> str:

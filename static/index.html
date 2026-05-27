@@ -1,42 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>HTLcord</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HTLcord | Professional Chat</title>
+    <!-- Font Awesome for optional icons (purely visual, no ID/class conflicts) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>HTLcord Test</h1>
 
-    <div>
-        <input type="text" id="username" placeholder="Enter your username">
-    </div>
+    <!-- Full app container: clean, centered, card-like feel -->
+    <div class="chat-app-wrapper">
+        
+        <!-- Header / Top bar area: elegant but minimal -->
+        <div class="app-header">
+            <div class="logo-area">
+                <i class="fas fa-comment-dots"></i>
+                <span>HTLcord</span>
+            </div>
+            <div class="connection-status-area" id="connectionStatusArea">
+                <span class="status-dot offline"></span>
+                <span class="status-text">Disconnected</span>
+            </div>
+        </div>
 
-    <div>
-        <button id="connectbtn">Connect</button>
-        <button id="disconnectbtn" disabled>Disconnect</button>
-        <button id="sendbtn" disabled>Send</button>
-        <button id="updatebtn" disabled>Update</button>
-    </div>
-
-    <div id="messages">
-        <input type="text" id="messageinput" placeholder="Type a message..." disabled>
-    </div>
-
-    <div id="incomingmessages">
-        <textarea id="incoming" readonly></textarea>
-    </div>
-
-    <div>
-        <button id="broadcastbtn">Broadcast</button>
-    </div>
-
-  <div class="user-sidebar">
-            <h3>Users</h3>
-            <div id="userlist" class="user-list">
-                <!-- Users will be dynamically added here -->
+        <!-- Main chat container: sidebar + main area (flex layout) -->
+        <div class="container">
+            <!-- MAIN CONTENT: chat area (messages + input) -->
+            <div class="main-content">
+                <!-- Chat header with broadcast / active chat indicator (visual only) -->
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <i class="fas fa-hashtag"></i>
+                        <span id="activeChatLabel">broadcast</span>
+                    </div>
+                    <div class="chat-actions">
+                        <!-- hidden functional elements stay untouched, but we add style wrapper -->
+                    </div>
+                </div>
+                
+                <!-- MESSAGE TEXTAREA (the main chat log) stretched -->
+                <div class="message-log-container">
+                    <textarea id="incoming" readonly placeholder="Chat messages will appear here..."></textarea>
+                </div>
+                
+                <!-- INPUT ROW: message input + send button (professional inline) -->
+                <div class="input-row">
+                    <div class="message-input-wrapper">
+                        <input type="text" id="messageinput" placeholder="Type a message... (Press Enter to send)" disabled>
+                    </div>
+                    <button id="sendbtn" class="btn-send" disabled>
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+                
+                <!-- Extra controls row: connect/disconnect/update, neatly arranged -->
+                <div class="controls-row">
+                    <div class="username-control">
+                        <div class="input-icon-group">
+                            <i class="fas fa-user-circle"></i>
+                            <input type="text" id="username" placeholder="Your username">
+                            <input type="password" id="password" placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="connectbtn" class="btn btn-primary">
+                            <i class="fas fa-plug"></i> Connect
+                        </button>
+                        <button id="disconnectbtn" class="btn btn-outline" disabled>
+                            <i class="fas fa-power-off"></i> Disconnect
+                        </button>
+                        <button id="updatebtn" class="btn btn-secondary" disabled>
+                            <i class="fas fa-sync-alt"></i> Update
+                        </button>
+                    </div>
+                </div>
             </div>
             
-
+            <!-- RIGHT SIDEBAR: user/chats list -->
+            <div class="user-sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-users"></i> Chats</h3>
+                    <!-- Broadcast button placed right next to "Chats" text, visually integrated -->
+                    <button id="broadcastbtn" class="broadcast-side-btn" title="Switch to Broadcast (Global Chat)">
+                        <i class="fas fa-broadcast-tower"></i> Broadcast
+                    </button>
+                </div>
+                <div id="userlist" class="user-list">
+                    <!-- dynamic user buttons appear here -->
+                    <div class="placeholder-message">No users yet. Connect to start.</div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
 
     <script src="app.js"></script>
 </body>

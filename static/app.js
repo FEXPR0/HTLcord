@@ -4,11 +4,16 @@ let currentchat = "broadcast";
 const connectBtn = document.getElementById('connectbtn');
 const disconnectBtn = document.getElementById('disconnectbtn');
 const sendBtn = document.getElementById('sendbtn');
+
 const messageInput = document.getElementById('messageinput');
 const output = document.getElementById('incoming');
+
 const username = document.getElementById('username');
+const password = document.getElementById('password');
 const updateBtn = document.getElementById('updatebtn');
+
 const broadcastBtn = document.getElementById('broadcastbtn');
+
 
 function log(message) {
     output.value += message + '\n';
@@ -45,6 +50,17 @@ connectBtn.onclick = () => {
     socket = new WebSocket('ws://localhost:8000/ws');
     
     socket.onopen = () => {
+        if (!username.value) {
+            log("Error: Username required");
+            socket.close();
+            return;
+        }
+        else if (!password.value) {
+            log("Error: Password required (technically:) )");
+            socket.close();
+            return;
+        }
+        else {
         log('Connected to server');
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
@@ -54,8 +70,11 @@ connectBtn.onclick = () => {
         messageInput.focus();
         
         // Send join message with username
-        socket.send(JSON.stringify({ type: 'join', username: username.value }));
+        
+        
+        socket.send(JSON.stringify({ type: 'join', username: username.value, password: password.value }));
         log(`You joined as ${username.value}`);
+        
         
         // Send log request
         log('Requesting chat history');
@@ -63,6 +82,7 @@ connectBtn.onclick = () => {
 
         //request user list
         socket.send(JSON.stringify({ type: 'request', content: 'users' }));
+        }
     };
     
     socket.onmessage = (event) => {

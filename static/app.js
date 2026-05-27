@@ -47,7 +47,7 @@ function updateuserList(userlist) {
 }
 connectBtn.onclick = () => {
     // Connect to your FastAPI server
-    socket = new WebSocket('ws://localhost:8000/ws');
+    socket = new WebSocket('ws://localhost:8084/ws');
     
     socket.onopen = () => {
         if (!username.value) {

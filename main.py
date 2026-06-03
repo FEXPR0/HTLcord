@@ -82,14 +82,20 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 
 
             elif data["type"] == "dm" and username:
-                unicastMessage = json.dumps({"type": "dm", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
-                await username_to_ws[data["username"]].send_text(unicastMessage)
-                #save DM in DB
-                db = get_db()
-                db.add(Message(username=username, message=data["message"], type="dm"))
-                db.commit()
-                db.close()
-
+                recipient = data.get("username")
+                if not recipient:
+                    await websocket.send_text(json.dumps({"type": "error", "message": "Missing dm recipient"}))
+                else:
+                    unicastMessage = json.dumps({"type": "dm", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
+                    if recipient in username_to_ws:
+                        await username_to_ws[recipient].send_text(unicastMessage)
+                    else:
+                        await websocket.send_text(json.dumps({"type": "error", "message": f"{recipient} is not connected. DM not delivered."}))
+                    db = get_db()
+                    db.add(Message(username=username, message=data["message"], type="dm", allowed_readers=json.dumps([username, recipient])))
+                    db.commit()
+                    db.close()
+                    
 
             elif data["type"] == "request" and data["content"] == "log":
                 db = get_db()
@@ -99,12 +105,18 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 await websocket.send_text(json.dumps({"type": "log", "messages": messages}))
             
  
-            # elif data["type"] == "request" and data["content"] == "dmlog":
-            #     db = get_db()
-            #     rows = db.query(Message).filter(Message.type == "dm").all()     #<- need to change filter!
-            #     messages = [{"type": "dm", "username": r.username, "message": r.message, "timestamp": str(r.timestamp)} for r in rows]
-            #     db.close()
-            #     await websocket.send_text(json.dumps({"type": "dmlog", "messages": messages}))
+            elif data["type"] == "request" and data["content"] == "dmlog":
+                
+                db = get_db()
+                rows = db.query(Message).filter(Message.type == "dm").all()
+                allowed_rows = []
+                for r in rows:
+                    allowed_readers = json.loads(r.allowed_readers)
+                    if username in allowed_readers:
+                        allowed_rows.append(r)
+                messages = [{"type": "dm", "username": r.username, "message": r.message, "timestamp": str(r.timestamp)} for r in allowed_rows]
+                db.close()
+                await websocket.send_text(json.dumps({"type": "dmlog", "messages": messages}))
 
 
             elif data["type"] == "request" and data["content"] == "users":

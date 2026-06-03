@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, DateTime
+from sqlalchemy import Integer, String, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from database import Base
@@ -21,3 +21,4 @@ class Message(Base):
     message: Mapped[str] = mapped_column(String(2000), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     type: Mapped[str] = mapped_column(String(20), default="message")  # "message" or "dm"
+    allowed_readers: Mapped[str] = mapped_column(Text, nullable=False, default="[]")

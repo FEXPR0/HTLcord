@@ -2,6 +2,7 @@ let socket = null;
 let currentchat = "broadcast";
 
 const connectBtn = document.getElementById('connectbtn');
+const registerBtn = document.getElementById('registerbtn');
 const disconnectBtn = document.getElementById('disconnectbtn');
 const sendBtn = document.getElementById('sendbtn');
 
@@ -13,6 +14,8 @@ const password = document.getElementById('password');
 const updateBtn = document.getElementById('updatebtn');
 
 const broadcastBtn = document.getElementById('broadcastbtn');
+
+let authToken = null;
 
 
 function log(message) {
@@ -36,7 +39,7 @@ function updateuserList(userlist) {
             // Optional: Add functionality when clicking a user
             // For example, set message input to "@username "
             if (user !== username.value) {
-                incoming.value = "";
+                output.value = "";
                 currentchat = user;
                 log(`Switched chat to ${currentchat}`);
                 messageInput.focus();
@@ -45,22 +48,53 @@ function updateuserList(userlist) {
         userListContainer.appendChild(userButton);
     });
 }
-connectBtn.onclick = () => {
-    // Connect to your FastAPI server
-    socket = new WebSocket('ws://localhost:8084/ws');
-    
+async function authRequest(endpoint) {
+    if (!username.value) {
+        throw new Error('Username required');
+    }
+    if (!password.value) {
+        throw new Error('Password required');
+    }
+
+    const response = await fetch(`http://localhost:8084/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.value, password: password.value })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.detail || data.message || `${endpoint} failed`);
+    }
+    return data.token;
+}
+
+registerBtn.onclick = async () => {
+    try {
+        const token = await authRequest('register');
+        authToken = token;
+        log(`Registered and authenticated as ${username.value}`);
+    } catch (error) {
+        log(`Register failed: ${error.message}`);
+    }
+};
+
+connectBtn.onclick = async () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        log('Already connected');
+        return;
+    }
+
+    try {
+        authToken = await authRequest('login');
+    } catch (error) {
+        log(`Login failed: ${error.message}`);
+        return;
+    }
+
+    socket = new WebSocket(`ws://localhost:8084/ws?token=${encodeURIComponent(authToken)}`);
+
     socket.onopen = () => {
-        if (!username.value) {
-            log("Error: Username required");
-            socket.close();
-            return;
-        }
-        else if (!password.value) {
-            log("Error: Password required (technically:) )");
-            socket.close();
-            return;
-        }
-        else {
         log('Connected to server');
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
@@ -68,23 +102,13 @@ connectBtn.onclick = () => {
         updateBtn.disabled = false;
         messageInput.disabled = false;
         messageInput.focus();
-        
-        // Send join message with username
-        
-        
-        socket.send(JSON.stringify({ type: 'join', username: username.value, password: password.value }));
+
         log(`You joined as ${username.value}`);
-        
-        
-        // Send log request
         log('Requesting chat history');
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));
-
-        //request user list
         socket.send(JSON.stringify({ type: 'request', content: 'users' }));
-        }
     };
-    
+
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'log') {
@@ -147,12 +171,14 @@ sendBtn.onclick = () => {
 };
 
 updateBtn.onclick = () => {
-    socket.send(JSON.stringify({ type: 'request', content: 'users' }));
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'request', content: 'users' }));
+    }
 };
 
 broadcastBtn.onclick = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        incoming.value = "";
+        output.value = "";
         log("switched to broadcast mode");
         //request log
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));

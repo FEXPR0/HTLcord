@@ -1,14 +1,19 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import json
 from datetime import datetime
+from pydantic import BaseModel
+from auth import hash_password, verify_password, create_token, decode_token
 
 #sqlalchemy imports
 from database import engine, get_db, Base
 from models import User, Message
 Base.metadata.create_all(bind=engine)
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 app = FastAPI(title="HTLcord", version="0.1.0")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -16,37 +21,56 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 connected_clients = {}
 username_to_ws = {}
 
+
+@app.post("/register")
+def register(data: LoginRequest, db=Depends(get_db)):
+    # Check if user exists
+    if db.query(User).filter(User.username == data.username).first():
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+    # Create new user with hashed password
+    hashed = hash_password(data.password)
+    user = User(username=data.username, password=hashed)
+    db.add(user)
+    db.commit()
+    
+    return {"message": "User registered", "token": create_token(data.username)}
+
+@app.post("/login")
+def login(data: LoginRequest, db=Depends(get_db)):
+    user = db.query(User).filter(User.username == data.username).first()
+    
+    if not user or not verify_password(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    return {"message": "Login successful", "token": create_token(data.username)}
+
 @app.websocket("/ws")
-async def websocketEndpoint(websocket: WebSocket):
+async def websocketEndpoint(websocket: WebSocket, token: str = None):
     await websocket.accept()
-    username = None
+    try:
+        username = decode_token(token)  # Verify token
+        connected_clients[websocket] = username
+        username_to_ws[username] = websocket
+        print(f"{username} connected with token successfully")
+    except:
+        await websocket.close(code=1008, reason="Invalid token")
+        return
 
     try:
         while True:
             rawData = await websocket.receive_text()
             data = json.loads(rawData)
-            print(f"Received data: {rawData}")
+            print(f"Received data: {rawData}")                
 
-            if data["type"] == "join":
-                username = data["username"]
-                connected_clients[websocket] = username
-                username_to_ws[username] = websocket
-                print(f"{username} connected")
-
-                #save User in DB
-                db = get_db()
-                if not db.query(User).filter(User.username == username).first():
-                    db.add(User(username=username))
-                    db.commit()
-                db.close()
-                
-
-            elif data["type"] == "message" and username:
+            if data["type"] == "message" and username:
                 broadcastMessage = json.dumps({"type": "message", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
                 for client in connected_clients:
                     await client.send_text(broadcastMessage)

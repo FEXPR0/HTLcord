@@ -14,8 +14,9 @@ SECRET_KEY = "htlcord-geheimschluessel"  # TODO: in Produktion sicher ersetzen!
 ALGORITHM  = "HS256"
 TOKEN_EXPIRE_MINUTES = 60 * 24  # Token gilt 24 Stunden
 
-# CryptContext kümmert sich um bcrypt-Hashing
-pwd_context = CryptContext(schemes=["bcrypt"])
+# CryptContext kümmert sich um sichere Passwort-Hashes.
+# bcrypt_sha256 prevents bcrypt's 72-byte password limit by hashing the password with SHA-256 first.
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 def hash_password(plain_password: str) -> str:
@@ -23,8 +24,7 @@ def hash_password(plain_password: str) -> str:
     Passwort hashen - aus "hallo123" wird ein sicherer Hash.
     Der Hash kann nicht rückgängig gemacht werden.
     """
-    # TODO: hier pwd_context.hash() aufrufen
-    pass
+    return pwd_context.hash(plain_password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -32,8 +32,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Prüft ob ein Klartext-Passwort zum gespeicherten Hash passt.
     Gibt True zurück wenn korrekt, sonst False.
     """
-    # TODO: hier pwd_context.verify() aufrufen
-    pass
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_token(username: str) -> str:
@@ -41,10 +40,9 @@ def create_token(username: str) -> str:
     Erstellt einen JWT-Token für einen eingeloggten User.
     Der Token enthält den Username und läuft nach 24h ab.
     """
-    expire = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
     data = {"sub": username, "exp": expire}
-    # TODO: jwt.encode() aufrufen und Token zurückgeben
-    pass
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> str:
@@ -52,5 +50,11 @@ def decode_token(token: str) -> str:
     Liest den Username aus einem JWT-Token heraus.
     Wirft eine Exception wenn der Token ungültig oder abgelaufen ist.
     """
-    # TODO: jwt.decode() aufrufen und payload["sub"] zurückgeben
-    pass
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise Exception("Invalid token, username not found in payload")
+        return username
+    except:
+        raise Exception("Token verification failed")

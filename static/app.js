@@ -1,7 +1,7 @@
 let socket = null;
 let currentchat = "broadcast";
 
-const SERVER_IP = '192.168.131.158'; // Change this to your server's IP
+const SERVER_IP = 'localhost'; // Change this to your server's IP
 const SERVER_PORT = '8084';
 
 const connectBtn = document.getElementById('connectbtn');
@@ -15,8 +15,41 @@ const output = document.getElementById('incoming');
 const username = document.getElementById('username');
 const password = document.getElementById('password');
 const updateBtn = document.getElementById('updatebtn');
-
 const broadcastBtn = document.getElementById('broadcastbtn');
+
+// visual stuff
+const darkmodeToggle = document.getElementById('darkmodeToggle');
+const icon = darkmodeToggle.querySelector('i');
+
+// function to update connection status UI
+function updateConnectionStatus(isConnected) {
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
+    
+    if (isConnected) {
+        statusDot.classList.remove('offline');
+        statusDot.classList.add('online');
+        statusText.textContent = 'Connected';
+    } else {
+        statusDot.classList.remove('online');
+        statusDot.classList.add('offline');
+        statusText.textContent = 'Disconnected';
+    }
+}
+
+// function to update the active chat label
+function updateActiveChatLabel(chatName) {
+    const activeChatLabel = document.getElementById('activeChatLabel');
+    if (activeChatLabel) {
+        if (chatName === "broadcast") {
+            activeChatLabel.innerHTML = '<i class="fas fa-hashtag"></i> broadcast';
+        } else {
+            activeChatLabel.innerHTML = `<i class="fas fa-user"></i> ${chatName}`;
+        }
+    }
+}
+
+
 
 let authToken = null;
 
@@ -40,18 +73,19 @@ function updateuserList(userlist) {
         
         userButton.textContent = user;
         userButton.onclick = () => {
-            if (user !== username.value) {
-                output.value = "";
-                currentchat = user;
-                userButtons = document.getElementsByClassName('user-button');
-                for (const btn of userButtons) {
-                    btn.classList.remove('dm-notification');
-                }
-                log(`Switched to ${currentchat}\n`);
-                messageInput.focus();
-                socket.send(JSON.stringify({ type: 'request', content: 'dmlog', username: currentchat }));
+    if (user !== username.value) {
+            output.value = "";
+            currentchat = user;
+            updateActiveChatLabel(user); // Add this line
+            userButtons = document.getElementsByClassName('user-button');
+            for (const btn of userButtons) {
+                btn.classList.remove('dm-notification');
             }
-        };
+            log(`Switched to ${currentchat}\n`);
+            messageInput.focus();
+            socket.send(JSON.stringify({ type: 'request', content: 'dmlog', username: currentchat }));
+        }
+    };
         userListContainer.appendChild(userButton);
     });
 }
@@ -103,6 +137,7 @@ connectBtn.onclick = async () => {
 
     socket.onopen = () => {
         log('Connected to server');
+        updateConnectionStatus(true); // Add this line
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
         sendBtn.disabled = false;
@@ -111,7 +146,6 @@ connectBtn.onclick = async () => {
         messageInput.focus();
 
         log(`You joined as ${username.value}\n`);
-        //log('Requesting chat history');
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));
         socket.send(JSON.stringify({ type: 'request', content: 'users' }));
     };
@@ -175,11 +209,14 @@ connectBtn.onclick = async () => {
     };
     
     socket.onerror = () => {
-        log('Connection error');
+    log('Connection error');
+    updateConnectionStatus(false); // Add this line
     };
     
     socket.onclose = () => {
         log('Disconnected');
+        updateConnectionStatus(false); // Add this line
+        updateActiveChatLabel('broadcast'); // Reset the chat label
         connectBtn.disabled = false;
         disconnectBtn.disabled = true;
         sendBtn.disabled = true;
@@ -224,7 +261,7 @@ broadcastBtn.onclick = () => {
         output.value = "";
         log("Switched to broadcast\n");
         broadcastBtn.classList.remove('dm-notification');
-        //request log
+        updateActiveChatLabel('broadcast'); // Add this line
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));
         currentchat = "broadcast";
         messageInput.focus();
@@ -236,3 +273,26 @@ messageInput.addEventListener('keypress', (event) => {
         sendBtn.click(); // Triggers the send button's click event
     }
 });
+
+
+
+// Check for saved preference
+if (localStorage.getItem('darkmode') === 'enabled') {
+    document.body.classList.add('dark-mode');
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+}
+
+darkmodeToggle.onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('darkmode', 'enabled');
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+    } else {
+        localStorage.setItem('darkmode', 'disabled');
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+    }
+};

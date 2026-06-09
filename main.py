@@ -106,13 +106,12 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
             
  
             elif data["type"] == "request" and data["content"] == "dmlog":
-                
                 db = get_db()
                 rows = db.query(Message).filter(Message.type == "dm").all()
                 allowed_rows = []
                 for r in rows:
                     allowed_readers = json.loads(r.allowed_readers)
-                    if username in allowed_readers:
+                    if username in allowed_readers and data["username"] in allowed_readers:
                         allowed_rows.append(r)
                 messages = [{"type": "dm", "username": r.username, "message": r.message, "timestamp": str(r.timestamp)} for r in allowed_rows]
                 db.close()

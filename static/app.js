@@ -1,6 +1,9 @@
 let socket = null;
 let currentchat = "broadcast";
 
+const SERVER_IP = '192.168.131.158'; // Change this to your server's IP
+const SERVER_PORT = '8084';
+
 const connectBtn = document.getElementById('connectbtn');
 const registerBtn = document.getElementById('registerbtn');
 const disconnectBtn = document.getElementById('disconnectbtn');
@@ -29,20 +32,24 @@ function updateuserList(userlist) {
 
     
     userlist.forEach(user => {
+        if (user === username.value) {
+            return;
+        }
         const userButton = document.createElement('button');
         userButton.className = 'user-button';
-        if (user === username.value) {
-            userButton.classList.add('current-user');
-        }
+        
         userButton.textContent = user;
         userButton.onclick = () => {
-            // Optional: Add functionality when clicking a user
-            // For example, set message input to "@username "
             if (user !== username.value) {
                 output.value = "";
                 currentchat = user;
-                log(`Switched chat to ${currentchat}`);
+                userButtons = document.getElementsByClassName('user-button');
+                for (const btn of userButtons) {
+                    btn.classList.remove('dm-notification');
+                }
+                log(`Switched to ${currentchat}\n`);
                 messageInput.focus();
+                socket.send(JSON.stringify({ type: 'request', content: 'dmlog', username: currentchat }));
             }
         };
         userListContainer.appendChild(userButton);
@@ -56,7 +63,7 @@ async function authRequest(endpoint) {
         throw new Error('Password required');
     }
 
-    const response = await fetch(`http://localhost:8084/${endpoint}`, {
+    const response = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.value, password: password.value })
@@ -92,7 +99,7 @@ connectBtn.onclick = async () => {
         return;
     }
 
-    socket = new WebSocket(`ws://localhost:8084/ws?token=${encodeURIComponent(authToken)}`);
+    socket = new WebSocket(`ws://${SERVER_IP}:${SERVER_PORT}/ws?token=${encodeURIComponent(authToken)}`);
 
     socket.onopen = () => {
         log('Connected to server');
@@ -103,31 +110,67 @@ connectBtn.onclick = async () => {
         messageInput.disabled = false;
         messageInput.focus();
 
-        log(`You joined as ${username.value}`);
-        log('Requesting chat history');
+        log(`You joined as ${username.value}\n`);
+        //log('Requesting chat history');
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));
         socket.send(JSON.stringify({ type: 'request', content: 'users' }));
     };
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
+
+        // log
         if (data.type === 'log') {
-            log('Chat history:');
+            
             data.messages.forEach(msg => {
-                log(`${msg.username}: ${msg.message}`);
+                if (msg.username === username.value) {
+                    log(`You: ${msg.message}`);
+                } else {
+                    log(`${msg.username}: ${msg.message}`);
+                }
             });
+
+
+
+        // normal Messages (broadcast)
         } else if (data.type === 'message') {
             //skip if own message
             if (data.username === username.value) return;
-            const formatted = `${data.username}: ${data.message}`;
-            log(formatted);
+            if (currentchat == "broadcast") {
+                const formatted = `${data.username}: ${data.message}`;
+                log(formatted);
+            }else {
+                // make broadcast button turn blue
+                broadcastBtn.classList.add('dm-notification');
+            }
+
+        // userlist update
         } else if (data.type === 'users') {
             const userlist = data.users;
             updateuserList(userlist);
+        
+
+        // direct message
         } else if (data.type === 'dm') {
             if (data.username === username.value) return;
-            const formatted = `DM from ${data.username}: ${data.message}`;
-            log(formatted);
+            // make button of that user in userlist turn blue
+            const userButtons = document.getElementsByClassName('user-button');
+            for (const btn of userButtons) {
+                if (btn.textContent === data.username) {
+                    btn.classList.add('dm-notification');
+                }
+            if (currentchat === data.username) {
+                log(`DM from ${data.username}: ${data.message}`);
+            }
+            }
+        } else if (data.type === 'dmlog') {
+            for (const msg of data.messages) {
+                if (msg.username === username.value) {
+                    log(`You: ${msg.message}`);
+                } else if (msg.username === currentchat) {
+                    log(`${msg.username}: ${msg.message}`);
+                }
+            }
         }
     };
     
@@ -179,7 +222,8 @@ updateBtn.onclick = () => {
 broadcastBtn.onclick = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
         output.value = "";
-        log("switched to broadcast mode");
+        log("Switched to broadcast\n");
+        broadcastBtn.classList.remove('dm-notification');
         //request log
         socket.send(JSON.stringify({ type: 'request', content: 'log' }));
         currentchat = "broadcast";

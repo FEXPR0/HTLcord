@@ -43,19 +43,36 @@ body {
     transition: background-color 0.2s;
 }
 
+.user-button.dm-notification {
+    background-color: #5bc3e0b0;
+}
+.user-button.dm-notification:hover {
+    background-color: rgb(172, 222, 239);
+}
+
 .user-button:hover {
     background-color: #e0e0e0;
 }
 
-.user-button.current-user {
-    background-color: #4CAF50;
-    color: white;
-    cursor: default;
+.broadcast-button {
+    margin-bottom: 15px !important;
+    background-color: #e8e8e8 !important;
+    font-weight: 500;
+    transition: background-color 0.2s;
 }
 
-.user-button.current-user:hover {
-    background-color: #4CAF50;
+.broadcast-button.dm-notification {
+    background-color: #5bc3e0b0 !important;
 }
+
+.broadcast-button.dm-notification:hover {
+    background-color: rgb(172, 222, 239) !important;
+}
+
+.broadcast-button:hover {
+    background-color: #d0d0d0 !important;
+}
+
 
 textarea { 
     padding: 8px; 

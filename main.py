@@ -1,4 +1,7 @@
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, HTTPException, Depends
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import json
@@ -18,16 +21,34 @@ class LoginRequest(BaseModel):
 app = FastAPI(title="HTLcord", version="0.1.0")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+load_dotenv()
+# Convert comma-separated string to list
+origins_string = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")
+allowed_origins = [origin.strip() for origin in origins_string.split(",")]
+
+# During development allow all origins to simplify testing (adjust in production)
+if os.getenv("ENVIRONMENT", "production") == "development":
+    cors_origins = ["*"]
+    cors_credentials = False
+else:
+    cors_origins = allowed_origins
+    cors_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=cors_credentials,
 )
 
 connected_clients = {}
 username_to_ws = {}
 
+
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html")
 
 @app.post("/register")
 def register(data: LoginRequest, db=Depends(get_db)):

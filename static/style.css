@@ -566,3 +566,11 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #1a1a4e;
 }
+body.dark-mode .user-button.dm-notification {
+    background-color: #5bc3e0b0 !important;
+    border-left: 3px solid #3498db;
+}
+
+body.dark-mode .user-button.dm-notification:hover {
+    background-color: rgb(92, 142, 180) !important;
+}

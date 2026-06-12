@@ -1,16 +1,18 @@
 # auth.py
-# Alles rund um Passwörter und JWT-Tokens.
-#
-# JWT = JSON Web Token
-# Ein Token ist eine kurze verschlüsselte Zeichenkette die beweist,
-# dass man eingeloggt ist - ohne jedes Mal das Passwort zu prüfen.
-# Aufbau: header.payload.signature (Base64 kodiert)
+# JWT JSON Web Token
 
+import os
+from dotenv import load_dotenv
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "htlcord-geheimschluessel"  # TODO: in Produktion sicher ersetzen!
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY not set in .env file")
+
 ALGORITHM  = "HS256"
 TOKEN_EXPIRE_MINUTES = 60 * 24  # Token gilt 24 Stunden
 
@@ -20,10 +22,6 @@ pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto
 
 
 def hash_password(plain_password: str) -> str:
-    """
-    Passwort hashen - aus "hallo123" wird ein sicherer Hash.
-    Der Hash kann nicht rückgängig gemacht werden.
-    """
     return pwd_context.hash(plain_password)
 
 

@@ -23,7 +23,7 @@ const output = document.getElementById('incoming');
 
 const username = document.getElementById('username');
 const password = document.getElementById('password');
-const updateBtn = document.getElementById('updatebtn');
+//const updateBtn = document.getElementById('updatebtn');
 
 const broadcastBtn = document.getElementById('broadcastbtn');
 
@@ -34,6 +34,7 @@ const icon = darkmodeToggle.querySelector('i');
 // Track user activity for sorting
 let userActivity = new Map(); // Stores { username: timestamp }
 let currentUserList = [];
+let onlineUsersSet = new Set(); // Track which users are online
 
 // Session storage keys
 const SESSION_TOKEN_KEY = 'htlcord_session_token';
@@ -109,6 +110,11 @@ function updateUserActivity(username) {
     refreshUserList();
 }
 
+// Check if a user is online
+function isUserOnline(username) {
+    return onlineUsersSet.has(username);
+}
+
 // Refresh the user list UI with sorted users and status indicators
 function refreshUserList() {
     if (!currentUserList.length) return;
@@ -116,7 +122,7 @@ function refreshUserList() {
     const userListContainer = document.getElementById('userlist');
     userListContainer.innerHTML = '';
     
-    // Sort users by activity
+    // Sort users by activity (online users will be at top based on activity)
     const sortedUsers = sortUsersByActivity([...currentUserList]);
     
     let hasUsers = false;
@@ -128,15 +134,16 @@ function refreshUserList() {
         const userButton = document.createElement('button');
         userButton.className = 'user-button';
         
-        // All users are offline by default (grey dot)
-        const status = 'offline';
+        // Check if user is online
+        const isOnline = isUserOnline(user);
+        const status = isOnline ? 'online' : 'offline';
         
-        // Add offline class for visual styling
-        if (status === 'offline') {
+        // Add offline class for visual styling if offline
+        if (!isOnline) {
             userButton.classList.add('offline-user');
         }
         
-        // Create status dot (grey by default)
+        // Create status dot
         const statusDot = document.createElement('span');
         statusDot.className = `user-status-dot ${status}`;
         
@@ -183,6 +190,19 @@ function refreshUserList() {
 
 function updateuserList(userlist) {
     currentUserList = [...userlist];
+    refreshUserList();
+}
+
+// Update online users set and refresh the UI
+function updateOnlineUsers(onlineUsers) {
+    onlineUsersSet.clear();
+    onlineUsers.forEach(user => onlineUsersSet.add(user));
+    // Update activity timestamps for online users to keep them at top
+    onlineUsers.forEach(user => {
+        if (user !== username.value) {
+            userActivity.set(user, Date.now());
+        }
+    });
     refreshUserList();
 }
 
@@ -245,7 +265,7 @@ async function connectToServer(token) {
         connectBtn.disabled = true;
         disconnectBtn.disabled = false;
         sendBtn.disabled = false;
-        updateBtn.disabled = false;
+        //updateBtn.disabled = false;
         messageInput.disabled = false;
         messageInput.focus();
 
@@ -308,6 +328,7 @@ async function connectToServer(token) {
                     log(`DM from ${data.username}: ${data.message}`);
                 }
             }
+            //dm log for when you open a dm chat, shows the history of that dm
             else if (data.type === 'dmlog') {
             for (const msg of data.messages) {
                 if (msg.username === username.value) {
@@ -316,6 +337,13 @@ async function connectToServer(token) {
                     log(`${msg.username}: ${msg.message}`);
                 }
             }
+        }
+        else if (data.type === 'error') {
+            log(`Error: ${data.message}`);
+        }
+        //user status - now using the centralized updateOnlineUsers function
+        else if (data.type === 'onlineusers') {
+            updateOnlineUsers(data.users);
         }
     };
     
@@ -341,12 +369,13 @@ async function connectToServer(token) {
         disconnectBtn.disabled = true;
         sendBtn.disabled = true;
         messageInput.disabled = true;
-        updateBtn.disabled = true;
+        //updateBtn.disabled = true;
         socket = null;
         
         // Clear user activity on disconnect
         userActivity.clear();
         currentUserList = [];
+        onlineUsersSet.clear();
         
         const userListContainer = document.getElementById('userlist');
         userListContainer.innerHTML = '<div class="placeholder-message">No users yet. Connect to start.</div>';
@@ -411,11 +440,11 @@ sendBtn.onclick = () => {
     }
 };
 
-updateBtn.onclick = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: 'request', content: 'users' }));
-    }
-};
+//updateBtn.onclick = () => {
+//    if (socket && socket.readyState === WebSocket.OPEN) {
+//        socket.send(JSON.stringify({ type: 'request', content: 'users' }));
+//    }
+//};
 
 broadcastBtn.onclick = () => {
     if (socket && socket.readyState === WebSocket.OPEN) {

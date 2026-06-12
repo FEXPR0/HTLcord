@@ -278,8 +278,12 @@ textarea#incoming {
     gap: 8px;
 }
 
+/* User button with status indicator */
 .user-button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
     width: 100%;
     padding: 12px;
     text-align: left;
@@ -290,6 +294,35 @@ textarea#incoming {
     transition: all 0.2s ease;
     font-size: 14px;
     color: #2c3e50;
+}
+
+.user-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+    background-color: #95a5a6;
+}
+
+.user-status-dot.online {
+    background-color: #2ecc71;
+    box-shadow: 0 0 5px #2ecc71;
+}
+
+.user-status-dot.offline {
+    background-color: #95a5a6;
+}
+
+.user-name {
+    flex: 1;
+    text-align: left;
+}
+
+/* Offline user styling - slightly greyed out */
+.user-button.offline-user {
+    background-color: rgba(128, 128, 128, 0.1);
+    opacity: 0.7;
 }
 
 .user-button.dm-notification {
@@ -304,6 +337,11 @@ textarea#incoming {
 .user-button:hover {
     background-color: #e9ecef;
     transform: translateX(2px);
+}
+
+.user-button.offline-user:hover {
+    opacity: 0.85;
+    background-color: rgba(128, 128, 128, 0.15);
 }
 
 .broadcast-button {
@@ -486,6 +524,21 @@ body.dark-mode .btn-primary:hover:not(:disabled) {
     background-color: #1a1a4e;
 }
 
+/* Dark mode offline user styling */
+body.dark-mode .user-button.offline-user {
+    background-color: rgba(128, 128, 128, 0.05);
+    opacity: 0.6;
+}
+
+body.dark-mode .user-button.dm-notification {
+    background-color: #5bc3e0b0 !important;
+    border-left: 3px solid #3498db;
+}
+
+body.dark-mode .user-button.dm-notification:hover {
+    background-color: rgb(92, 142, 180) !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
@@ -565,12 +618,4 @@ body.dark-mode ::-webkit-scrollbar-thumb {
 
 body.dark-mode ::-webkit-scrollbar-thumb:hover {
     background: #1a1a4e;
-}
-body.dark-mode .user-button.dm-notification {
-    background-color: #5bc3e0b0 !important;
-    border-left: 3px solid #3498db;
-}
-
-body.dark-mode .user-button.dm-notification:hover {
-    background-color: rgb(92, 142, 180) !important;
 }

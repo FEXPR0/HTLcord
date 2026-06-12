@@ -109,7 +109,7 @@ function updateUserActivity(username) {
     refreshUserList();
 }
 
-// Refresh the user list UI with sorted users
+// Refresh the user list UI with sorted users and status indicators
 function refreshUserList() {
     if (!currentUserList.length) return;
     
@@ -128,7 +128,26 @@ function refreshUserList() {
         const userButton = document.createElement('button');
         userButton.className = 'user-button';
         
-        userButton.textContent = user;
+        // All users are offline by default (grey dot)
+        const status = 'offline';
+        
+        // Add offline class for visual styling
+        if (status === 'offline') {
+            userButton.classList.add('offline-user');
+        }
+        
+        // Create status dot (grey by default)
+        const statusDot = document.createElement('span');
+        statusDot.className = `user-status-dot ${status}`;
+        
+        // Create user name span
+        const userNameSpan = document.createElement('span');
+        userNameSpan.className = 'user-name';
+        userNameSpan.textContent = user;
+        
+        userButton.appendChild(statusDot);
+        userButton.appendChild(userNameSpan);
+        
         userButton.onclick = () => {
             if (user !== username.value) {
                 // Update activity when clicking on user
@@ -479,6 +498,8 @@ darkmodeToggle.onclick = () => {
         icon.classList.add('fa-moon');
     }
 };
+
+
 
 // Try auto-login when page loads
 window.addEventListener('load', () => {

@@ -14,7 +14,7 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY not set in .env file")
 
 ALGORITHM  = "HS256"
-TOKEN_EXPIRE_MINUTES = 60 * 24  # Token gilt 24 Stunden
+TOKEN_EXPIRE_MINUTES = 60 * 12  # Token gilt 12 Stunden
 
 # CryptContext kümmert sich um sichere Passwort-Hashes.
 # bcrypt_sha256 prevents bcrypt's 72-byte password limit by hashing the password with SHA-256 first.
@@ -49,10 +49,14 @@ def decode_token(token: str) -> str:
     Wirft eine Exception wenn der Token ungültig oder abgelaufen ist.
     """
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": True})
         username = payload.get("sub")
         if username is None:
             raise Exception("Invalid token, username not found in payload")
         return username
-    except:
-        raise Exception("Token verification failed")
+    except jwt.ExpiredSignatureError:
+        raise Exception("Token expired")
+    except jwt.InvalidTokenError as e:
+        raise Exception(f"Token verification failed: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Token verification failed: {str(e)}")

@@ -80,16 +80,27 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
         username = decode_token(token)  # Verify token
         connected_clients[websocket] = username
         username_to_ws[username] = websocket
-        print(f"{username} connected with token successfully")
-    except:
+        #print(f"{username} connected with token successfully")
+    except Exception as e:
+        print(f"WebSocket token verification failed: {str(e)}")
         await websocket.close(code=1008, reason="Invalid token")
         return
 
     try:
+        # Send list of connected/online users to the newly connected client
+        db = get_db()
+        rows = db.query(User).all()
+        users = [r.username for r in rows]
+        db.close()
+        onlineusers = list(connected_clients.values())
+        for client in connected_clients:
+            await client.send_text(json.dumps({"type": "users", "users": users}))
+            await client.send_text(json.dumps({"type": "onlineusers", "users": onlineusers}))
+        
         while True:
             rawData = await websocket.receive_text()
             data = json.loads(rawData)
-            print(f"Received data: {rawData}")                
+            #print(f"Received data: {rawData}")                
 
             if data["type"] == "message" and username:
                 broadcastMessage = json.dumps({"type": "message", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
@@ -109,9 +120,10 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 else:
                     unicastMessage = json.dumps({"type": "dm", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
                     if recipient in username_to_ws:
-                        await username_to_ws[recipient].send_text(unicastMessage)
-                    else:
-                        await websocket.send_text(json.dumps({"type": "error", "message": f"{recipient} is not connected. DM not delivered."}))
+                        try:
+                            await username_to_ws[recipient].send_text(unicastMessage)
+                        except Exception as e:
+                            await websocket.send_text(json.dumps({"type": "error", "message": f"Failed to deliver DM to {recipient}"}))
                     db = get_db()
                     db.add(Message(username=username, message=data["message"], type="dm", allowed_readers=json.dumps([username, recipient])))
                     db.commit()
@@ -139,16 +151,20 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 await websocket.send_text(json.dumps({"type": "dmlog", "messages": messages}))
 
 
-            elif data["type"] == "request" and data["content"] == "users":
-                db = get_db()
-                rows = db.query(User).all()
-                users = [r.username for r in rows]
-                db.close()
-                await websocket.send_text(json.dumps({"type": "users", "users": users}))
+            # elif data["type"] == "request" and data["content"] == "users":
+            #     db = get_db()
+            #     rows = db.query(User).all()
+            #     users = [r.username for r in rows]
+            #     db.close()
+            #     await websocket.send_text(json.dumps({"type": "users", "users": users}))
 
     except Exception as e:
         print(f"ERROR: {e}")
         if websocket in connected_clients:
             del connected_clients[websocket]
+            del username_to_ws[username]
+            onlineusers = list(connected_clients.values())
+            for client in connected_clients:
+                await client.send_text(json.dumps({"type": "onlineusers", "users": onlineusers}))
 
 # host with uvicorn: uvicorn main:app --reload --host 0.0.0.0 --port 8084

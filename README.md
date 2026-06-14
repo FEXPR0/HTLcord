@@ -12,11 +12,11 @@ Live Demo: https://htlcord.app
 
 - Echtzeit-Chat über WebSockets
 - Benutzerregistrierung & Login (JWT)
-- Mehrere Channels / Räume
+- Mehrere Channels
 - Online-Status anderer Benutzer
 - Nachrichtenverlauf
 - Läuft komplett im Browser – keine Installation nötig
-- Live gehostet auf Digital Ocean
+- Live gehostet auf DigitalOcean
 
 ---
 
@@ -41,7 +41,7 @@ Live Demo: https://htlcord.app
 ```
 HTLcord/
 ├── main.py               # FastAPI App, Routen, WebSocket-Handler
-├── models.py             # Datenbankmodelle (User, Message, Channel)
+├── models.py             # Datenbankmodelle (User, Message)
 ├── auth.py               # JWT Login/Register Logik
 ├── database.py           # SQLAlchemy Setup
 ├── requirements.txt      # Python-Abhängigkeiten
@@ -114,7 +114,7 @@ http://localhost:8000
 ## User Stories
 
 - Als Benutzer kann ich mich registrieren und einloggen.
-- Als Benutzer kann ich einem Channel beitreten und Nachrichten in Echtzeit senden und empfangen.
+- Als Benutzer kann ich in einem Channel Nachrichten in Echtzeit senden und empfangen.
 - Als Benutzer sehe ich, welche anderen Benutzer gerade online sind.
 - Als Benutzer kann ich den Nachrichtenverlauf eines Channels laden.
 - Als Benutzer kann ich zwischen verschiedenen Channels wechseln.

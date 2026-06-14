@@ -4,6 +4,8 @@ Ein browserbasierter Gruppen-Chat inspiriert von Discord – entwickelt als Schu
 
 Echtzeit-Kommunikation über WebSockets, Benutzerkonten mit JWT-Authentifizierung und ein Python/FastAPI-Backend mit SQLite-Datenbank.
 
+Live Demo: https://htlcord.app
+
 ---
 
 ## Features
@@ -14,6 +16,7 @@ Echtzeit-Kommunikation über WebSockets, Benutzerkonten mit JWT-Authentifizierun
 - Online-Status anderer Benutzer
 - Nachrichtenverlauf
 - Läuft komplett im Browser – keine Installation nötig
+- Live gehostet auf Digital Ocean
 
 ---
 
@@ -23,11 +26,12 @@ Echtzeit-Kommunikation über WebSockets, Benutzerkonten mit JWT-Authentifizierun
 |---|---|
 | Backend | Python 3.11+, FastAPI, Uvicorn |
 | WebSockets | FastAPI WebSocket Support |
-| Datenbank | SQLite (lokal) / PostgreSQL (Produktion) |
+| Datenbank | SQLite |
 | ORM | SQLAlchemy |
 | Auth | JWT (python-jose), Passwort-Hashing (passlib/bcrypt) |
 | Frontend | HTML, CSS, Vanilla JavaScript |
-| Hosting | HTL-Server oder Render.com / Railway.app |
+| Hosting | Digital Ocean (htlcord.app) |
+| Domain | name.com |
 | Versionsverwaltung | Git / GitHub |
 
 ---
@@ -52,36 +56,58 @@ HTLcord/
 
 ## Lokales Setup
 
+### Voraussetzungen
+- Python 3.11+
+- pip (Python Package Manager)
+- Git
+
 ### 1. Repository klonen
 
 ```bash
-git clone https://github.com/EUER-USERNAME/HTLcord.git
+git clone https://github.com/FEXPR0/HTLcord.git
 cd HTLcord
 ```
 
-### 2. Abhängigkeiten installieren
+### 2. Virtuelle Umgebung erstellen
 
 ```bash
-pip install fastapi uvicorn sqlalchemy python-jose passlib[bcrypt] websockets
+python -m venv venv
+
+# Unter Windows:
+venv\Scripts\activate
+
+# Unter macOS/Linux:
+source venv/bin/activate
 ```
 
-### 3. Server starten
+### 3. Abhängigkeiten installieren
 
 ```bash
-uvicorn main:app --reload
+pip install -r requirements.txt
 ```
 
-### 4. Im Browser öffnen
+### 4. Umgebungsvariablen einrichten
+
+Erstelle `.env` mit folgenden Einstellungen für lokale Entwicklung:
+
+```env
+SECRET_KEY=dev-secret-key-for-local-testing
+DATABASE_URL=sqlite:///./htlcord.db
+ALLOWED_ORIGINS=http://localhost:8000
+ENVIRONMENT=development
+```
+
+### 5. Server starten
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 6. Im Browser öffnen
 
 ```
 http://localhost:8000
 ```
-
----
-
-## Use Case Diagramm
-
-![HTLcord Use Case Diagramm](HTLcordUsecase.png)
 
 ---
 

@@ -95,6 +95,53 @@ function loadSavedSession() {
     return null;
 }
 
+// Add at the top with other variables
+let isTabActive = true;
+
+// Detect when tab becomes active/inactive
+document.addEventListener('visibilitychange', () => {
+    isTabActive = !document.hidden;
+    console.log('Tab active:', isTabActive);
+});
+
+// Request permission for desktop notifications
+async function requestNotificationPermission() {
+    if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            console.log('Notifications enabled');
+        }
+    }
+}
+
+// Send a desktop notification
+function sendNotification(title, body, tag = null) {
+    if (!('Notification' in window)) {
+        console.log('This browser does not support notifications');
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        const options = {
+            body: body,
+            icon: '/static/favicon.ico', // Optional: add an icon
+            silent: false,
+            tag: tag, // Prevents duplicate notifications
+        };
+        
+        const notification = new Notification(title, options);
+        
+        // Focus the window when notification is clicked
+        notification.onclick = () => {
+            window.focus();
+            notification.close();
+        };
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => notification.close(), 5000);
+    }
+}
+
 // Sort users by activity (most recent first)
 function sortUsersByActivity(users) {
     return users.sort((a, b) => {
@@ -322,6 +369,14 @@ async function connectToServer(token) {
                         btn.classList.add('dm-notification');
                     }
                 }
+                //send desktop notification
+            if (!isTabActive) {
+                sendNotification(
+            `DM from ${data.username}`,
+            data.message.length > 50 ? data.message.substring(0, 50) + '...' : data.message,
+            `dm-${data.username}` // Unique tag for each DM
+        );
+    };
                 
                 // Only log the message if we're currently in that DM chat
                 if (currentchat === data.username) {
@@ -533,4 +588,6 @@ darkmodeToggle.onclick = () => {
 // Try auto-login when page loads
 window.addEventListener('load', () => {
     tryAutoLogin();
+    // Request notification permission
+    requestNotificationPermission();
 });

@@ -22,7 +22,6 @@ app = FastAPI(title="HTLcord", version="0.1.0")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 load_dotenv()
-# Convert comma-separated string to list
 origins_string = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")
 allowed_origins = [origin.strip() for origin in origins_string.split(",")]
 
@@ -44,7 +43,6 @@ app.add_middleware(
 
 connected_clients = {}
 username_to_ws = {}
-
 
 @app.get("/")
 async def read_index():
@@ -80,7 +78,6 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
         username = decode_token(token)  # Verify token
         connected_clients[websocket] = username
         username_to_ws[username] = websocket
-        #print(f"{username} connected with token successfully")
     except Exception as e:
         print(f"WebSocket token verification failed: {str(e)}")
         await websocket.close(code=1008, reason="Invalid token")
@@ -106,7 +103,6 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 broadcastMessage = json.dumps({"type": "message", "username": username, "message": data["message"], "timestamp": str(datetime.now())})
                 for client in connected_clients:
                     await client.send_text(broadcastMessage)
-                #save message in DB
                 db = get_db()
                 db.add(Message(username=username, message=data["message"], type="message"))
                 db.commit()
@@ -150,13 +146,6 @@ async def websocketEndpoint(websocket: WebSocket, token: str = None):
                 db.close()
                 await websocket.send_text(json.dumps({"type": "dmlog", "messages": messages}))
 
-
-            # elif data["type"] == "request" and data["content"] == "users":
-            #     db = get_db()
-            #     rows = db.query(User).all()
-            #     users = [r.username for r in rows]
-            #     db.close()
-            #     await websocket.send_text(json.dumps({"type": "users", "users": users}))
 
     except Exception as e:
         print(f"ERROR: {e}")
